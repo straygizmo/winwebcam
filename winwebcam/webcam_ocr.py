@@ -5,11 +5,51 @@ import numpy as np
 import datetime
 import os
 
+# Set Tesseract path for Windows
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
 def capture_and_ocr():
-    cap = cv2.VideoCapture(0)
+    # Try different camera indices
+    camera_found = False
+    cap = None
+    working_camera_index = None
     
-    if not cap.isOpened():
-        print("Error: Could not open webcam")
+    for camera_index in range(5):  # Try camera indices 0-4
+        print(f"Trying camera index {camera_index}...")
+        
+        # Try default backend first
+        cap = cv2.VideoCapture(camera_index)
+        
+        if cap.isOpened():
+            # Test if we can actually read a frame
+            ret, frame = cap.read()
+            if ret and frame is not None:
+                print(f"Successfully opened camera at index {camera_index}")
+                camera_found = True
+                working_camera_index = camera_index
+                break
+            else:
+                cap.release()
+        
+        # If default backend failed, try DirectShow backend (Windows specific)
+        if not camera_found:
+            cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
+            if cap.isOpened():
+                ret, frame = cap.read()
+                if ret and frame is not None:
+                    print(f"Successfully opened camera at index {camera_index} using DirectShow")
+                    camera_found = True
+                    working_camera_index = camera_index
+                    break
+                else:
+                    cap.release()
+    
+    if not camera_found:
+        print("Error: Could not open any webcam")
+        print("Please check:")
+        print("1. Is a webcam connected to your computer?")
+        print("2. Is the webcam being used by another application?")
+        print("3. Do you have permission to access the camera?")
         return
     
     print("Press Enter to capture image and perform OCR")
@@ -66,16 +106,12 @@ def capture_and_ocr():
     cap.release()
     cv2.destroyAllWindows()
 
+
 if __name__ == "__main__":
-    # Check if Tesseract is installed and configured
+    print("Starting webcam OCR application...")
     try:
-        # For Windows, you might need to specify the path to tesseract.exe
-        # Uncomment and modify the following line if needed:
-        # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-        
         capture_and_ocr()
     except Exception as e:
-        print(f"Error: {e}")
-        print("\nMake sure you have installed:")
-        print("1. Tesseract-OCR (https://github.com/UB-Mannheim/tesseract/wiki)")
-        print("2. Required Python packages: pip install -r requirements.txt")
+        print(f"Error occurred: {e}")
+        import traceback
+        traceback.print_exc()
