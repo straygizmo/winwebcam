@@ -1,0 +1,16 @@
+[project]
+name = "winwebcam"
+version = "0.1.0"
+description = "Webcam capture with OCR functionality"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "opencv-python>=4.9.0.80",
+    "pytesseract>=0.3.10",
+    "Pillow>=10.2.0",
+    "numpy>=1.26.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
